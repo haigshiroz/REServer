@@ -14,9 +14,14 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 public class SalesDAO {
+
+    // private final String DB_URL = "mongodb://localhost:27017/";
+    private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
+
+
     public boolean newSale(HomeSale homeSale){
         // Establish connection
-        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017/")) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
             
@@ -38,7 +43,7 @@ public class SalesDAO {
 
     // returns Optional wrapping a HomeSale if id is found, empty Optional otherwise
     public Optional<HomeSale> getSaleById(String saleID) {       
-        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017/")) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
             
@@ -68,7 +73,7 @@ public class SalesDAO {
 
     // returns a List of homesales  in a given postCode
     public List<HomeSale> getSalesByPostCode(String postCode) {
-        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017/")) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
             
@@ -105,7 +110,7 @@ public class SalesDAO {
 
     // returns all home sales. Potentially large
     public List<HomeSale> getAllSales() {
-        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017/")) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
             
