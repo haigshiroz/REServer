@@ -18,8 +18,7 @@ public class SalesController {
 
         // Extract Home Sale from request body
         // TO DO override Validator exception method to report better error message
-        HomeSale sale = ctx.bodyValidator(HomeSale.class)
-                            .get();
+        HomeSale sale = ctx.bodyValidator(HomeSale.class).get();
 
         // store new sale in data set
         if (homeSales.newSale(sale)) {
@@ -47,8 +46,7 @@ public class SalesController {
     public void getSaleByID(Context ctx, String id) {
 
         Optional<HomeSale> sale = homeSales.getSaleById(id);
-        sale.map(ctx::json)
-                .orElseGet (() -> error (ctx, "Sale not found", 404));
+        sale.map(ctx::json).orElseGet (() -> error (ctx, "Sale not found", 404));
 
     }
 
@@ -69,10 +67,4 @@ public class SalesController {
         ctx.status(code);
         return ctx;
     }
-
-
-
-    
-
-
 }
