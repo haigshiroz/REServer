@@ -67,8 +67,16 @@ public class SalesController {
         List<HomeSale> sales = homeSales.getSalesByarea_type(area_type);
         if (sales.isEmpty()) {
             ctx.result("No sales found for this area type");
+
+            ctx.status(404);
+        } else {
+            ctx.json(sales);
+            ctx.status(200);
+        }
+    }
+
+
     // Implements GET /sales/{minPrice}/{maxPrice}
-    
     public void findSalesByPrice(Context ctx, String priceString1, String priceString2) {
         List<HomeSale> sales = homeSales.getSalesByPrice(priceString1, priceString2);
         if (sales.isEmpty()) {
