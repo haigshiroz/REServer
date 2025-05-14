@@ -63,8 +63,8 @@ public class SalesController {
     }
 
     // Implements Get /sales/area_type/{area_type}
-    public void findSaleByAreaType(Context ctx, String area_type) {
-        List<HomeSale> sales = homeSales.getSalesByAreaType(area_type);
+    public void findSaleByarea_type(Context ctx, String area_type) {
+        List<HomeSale> sales = homeSales.getSalesByarea_type(area_type);
         if (sales.isEmpty()) {
             ctx.result("No sales found for this area type");
             ctx.status(404);

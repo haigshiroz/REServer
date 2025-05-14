@@ -49,7 +49,7 @@ public class REServer {
 
                 // Get all sales by area type
                 app.get("/sales/area_type/{area_type}", ctx -> {
-                    salesHandler.findSaleByAreaType(ctx, ctx.pathParam("area_type"));
+                    salesHandler.findSaleByarea_type(ctx, ctx.pathParam("area_type"));
                 });
             }); // Close the apiBuilder
         } // Close the main method

@@ -5,11 +5,11 @@ import org.bson.types.ObjectId;
 // Simple class to provide test data in SalesDAO
 
 public class HomeSale {
-    private ObjectId id;
-    private String saleID;
-    private String postcode;
-    private String salePrice;
-    private String area_type;
+    public ObjectId id;
+    public String saleID;
+    public String postcode;
+    public String salePrice;
+    public String area_type;
 
     public HomeSale(String saleID, String postcode, String salePrice, String area_type) {
         this.id = new ObjectId();
@@ -56,11 +56,11 @@ public class HomeSale {
         this.salePrice = salePrice;
     }
 
-    public String getAreaType() {
+    public String getarea_type() {
         return area_type;
     }
 
-    public void setAreaType(String area_type) {
+    public void setarea_type(String area_type) {
         this.area_type = area_type;
     }
 }

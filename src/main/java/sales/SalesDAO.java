@@ -15,8 +15,8 @@ import com.mongodb.client.MongoDatabase;
 
 public class SalesDAO {
 
-    // private final String DB_URL = "mongodb://localhost:27017/";
-    private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
+    private final String DB_URL = "mongodb://localhost:27017/";
+    // private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
 
 
     public boolean newSale(HomeSale homeSale){
@@ -146,7 +146,7 @@ public class SalesDAO {
     }
 
     // returns a List of homesales in a given postCode
-    public List<HomeSale> getSalesByAreaType(String area_type) {
+    public List<HomeSale> getSalesByarea_type(String area_type) {
         try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
@@ -159,6 +159,7 @@ public class SalesDAO {
 
             // Retrieve matching documents
             List<HomeSale> homeSales = new ArrayList<>();
+            int count = 0;
             for (Document doc : residenciesCollection.find(query)) {
                 // Map each document to a HomeSale object
                 HomeSale homeSale = new HomeSale(
@@ -167,6 +168,11 @@ public class SalesDAO {
                         doc.getString("purchase_price"),
                         doc.getString("area_type"));
                 homeSales.add(homeSale);
+
+                count++;
+                if (count > 10) {
+                    break;
+                }
             }
             return homeSales;
         } catch (Exception e) {
