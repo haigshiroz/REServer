@@ -46,10 +46,11 @@ public class REServer {
                 app.get("/sales/postcode/{postcode}", ctx -> {
                     salesHandler.findSaleByPostCode(ctx, ctx.pathParam("postcode"));
                 });
-            });
 
-
-        }
-}
-
-
+                // Get all sales by area type
+                app.get("/sales/area_type/{area_type}", ctx -> {
+                    salesHandler.findSaleByarea_type(ctx, ctx.pathParam("area_type"));
+                });
+            }); // Close the apiBuilder
+        } // Close the main method
+} // Close the class

@@ -15,8 +15,8 @@ import com.mongodb.client.MongoDatabase;
 
 public class SalesDAO {
 
-    // private final String DB_URL = "mongodb://localhost:27017/";
-    private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
+    private final String DB_URL = "mongodb://localhost:27017/";
+    // private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
 
 
     public boolean newSale(HomeSale homeSale){
@@ -24,7 +24,7 @@ public class SalesDAO {
         try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
-            
+
             // Get the specific collection of residencies
             MongoCollection<Document> residenciesCollection = sampleTrainingDB.getCollection("residencies");
 
@@ -42,24 +42,25 @@ public class SalesDAO {
     }
 
     // returns Optional wrapping a HomeSale if id is found, empty Optional otherwise
-    public Optional<HomeSale> getSaleById(String saleID) {       
+    public Optional<HomeSale> getSaleById(String saleID) {
         try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
-            
+
             // Get the specific collection of residencies
             MongoCollection<Document> residenciesCollection = sampleTrainingDB.getCollection("residencies");
-    
+
             // Find the document with the given saleID
             Document query = new Document("_id", new ObjectId(saleID));
             Document result = residenciesCollection.find(query).first();
-    
+
             if (result != null) {
                 // Map the result to a HomeSale object
                 HomeSale homeSale = new HomeSale(
                     result.getObjectId("_id").toString(),
                     result.getString("post_code"),
-                    result.getString("purchase_price")
+                    result.getString("purchase_price"),
+                    result.getString("area_type")
                 );
                 return Optional.of(homeSale);
             } else {
@@ -76,7 +77,7 @@ public class SalesDAO {
         try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
-            
+
             // Get the specific collection of residencies
             MongoCollection<Document> residenciesCollection = sampleTrainingDB.getCollection("residencies");
 
@@ -90,7 +91,8 @@ public class SalesDAO {
                 HomeSale homeSale = new HomeSale(
                     doc.getObjectId("_id").toString(),
                     doc.getString("post_code"),
-                    doc.getString("purchase_price")
+                    doc.getString("purchase_price"),
+                    doc.getString("area_type")
                 );
                 homeSales.add(homeSale);
             }
@@ -113,7 +115,7 @@ public class SalesDAO {
         try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
             // Get the database
             MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
-            
+
             // Get the specific collection of residencies
             MongoCollection<Document> residenciesCollection = sampleTrainingDB.getCollection("residencies");
 
@@ -123,10 +125,10 @@ public class SalesDAO {
             for (Document doc : residenciesCollection.find()) {
                 // Map each document to a HomeSale object
                 HomeSale homeSale = new HomeSale(
-                    doc.getObjectId("_id").toString(),
-                    doc.getString("post_code"),
-                    doc.getString("purchase_price")
-                );
+                        doc.getObjectId("_id").toString(),
+                        doc.getString("post_code"),
+                        doc.getString("purchase_price"),
+                        doc.getString("area_type"));
                 homeSales.add(homeSale);
                 count++;
 
@@ -139,6 +141,42 @@ public class SalesDAO {
             return homeSales;
         } catch (Exception e) {
             System.err.println("Error in getAllSales Dao: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    // returns a List of homesales in a given postCode
+    public List<HomeSale> getSalesByarea_type(String area_type) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
+            // Get the database
+            MongoDatabase sampleTrainingDB = mongoClient.getDatabase("RealEstateDB");
+
+            // Get the specific collection of residencies
+            MongoCollection<Document> residenciesCollection = sampleTrainingDB.getCollection("residencies");
+
+            // Query to find documents with the given postCode
+            Document query = new Document("area_type", area_type);
+
+            // Retrieve matching documents
+            List<HomeSale> homeSales = new ArrayList<>();
+            int count = 0;
+            for (Document doc : residenciesCollection.find(query)) {
+                // Map each document to a HomeSale object
+                HomeSale homeSale = new HomeSale(
+                        doc.getObjectId("_id").toString(),
+                        doc.getString("post_code"),
+                        doc.getString("purchase_price"),
+                        doc.getString("area_type"));
+                homeSales.add(homeSale);
+
+                count++;
+                if (count > 10) {
+                    break;
+                }
+            }
+            return homeSales;
+        } catch (Exception e) {
+            System.err.println("Error in getSalesByPostCode Dao: " + e.getMessage());
             return Collections.emptyList();
         }
     }
