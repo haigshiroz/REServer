@@ -8,10 +8,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openapi.version>6.0.0-SNAPSHOT</openapi.version>
-        <mongodb-driver-sync.version>4.9.0</mongodb-driver-sync.version>
-        <mongodb-crypt.version>1.5.0</mongodb-crypt.version>
-        <logback-classic.version>1.4.11</logback-classic.version>
+        <openapi.version>6.0.0</openapi.version>
     </properties>
     <dependencies>
         <dependency>
@@ -25,19 +22,17 @@
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.16</version>
         </dependency>
+         <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-openapi-plugin</artifactId>
+            <version>${openapi.version}</version>
+        </dependency>
 
-        <!-- MongoDB -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>${mongodb-driver-sync.version}</version>
+            <version>4.11.1</version>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback-classic.version}</version>
-        </dependency>
-
 
     </dependencies>
     <build>
