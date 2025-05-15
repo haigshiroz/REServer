@@ -38,8 +38,10 @@ public class SalesDAO {
         } catch (Exception e) {
             System.err.println("Error in createResidence Dao: " + e.getMessage());
             return false;
+            }
+        
         }
-    }
+    
 
     // returns Optional wrapping a HomeSale if id is found, empty Optional otherwise
     public Optional<HomeSale> getSaleById(String saleID) {
@@ -179,5 +181,43 @@ public class SalesDAO {
             System.err.println("Error in getSalesByPostCode Dao: " + e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    // returns a List of homesales in a given price range
+    public List<HomeSale> getSalesByPrice(String priceString1, String priceString2) {
+    try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
+        MongoDatabase db = mongoClient.getDatabase("RealEstateDB");
+        MongoCollection<Document> collection = db.getCollection("residencies");
+
+        double minPrice = Double.parseDouble(priceString1);
+        double maxPrice = Double.parseDouble(priceString2);
+
+        List<HomeSale> homeSales = new ArrayList<>();
+        int count = 0;
+
+        for (Document doc : collection.find()) {
+            try {
+                double price = Double.parseDouble(doc.getString("purchase_price"));
+                if (price >= minPrice && price <= maxPrice) {
+                    HomeSale homeSale = new HomeSale(
+                            doc.getObjectId("_id").toString(),
+                            doc.getString("post_code"),
+                            doc.getString("purchase_price"),
+                            doc.getString("area_type")
+                    );
+                    homeSales.add(homeSale);
+                    count++;
+                    if (count > 10) break;
+                }
+            } catch (NumberFormatException e) {
+                // Skip records with invalid price strings
+                continue;
+            }
+        }
+
+        return homeSales;
+    } catch (Exception e) {
+        System.err.println("Error in getSalesByPrice DAO: " + e.getMessage());
+        return Collections.emptyList();
     }
 }
