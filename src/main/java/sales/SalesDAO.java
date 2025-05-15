@@ -8,10 +8,12 @@ import java.util.Optional;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 public class SalesDAO {
 
@@ -39,8 +41,9 @@ public class SalesDAO {
             System.err.println("Error in createResidence Dao: " + e.getMessage());
             return false;
             }
+            }
         
-        }
+    
     
 
     // returns Optional wrapping a HomeSale if id is found, empty Optional otherwise
@@ -184,21 +187,30 @@ public class SalesDAO {
     }
 
     // returns a List of homesales in a given price range
-    public List<HomeSale> getSalesByPrice(String priceString1, String priceString2) {
+    public List<HomeSale> getSalesBypurchase_price(String purchase_price, String purchase_price2) {
     try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
         MongoDatabase db = mongoClient.getDatabase("RealEstateDB");
         MongoCollection<Document> collection = db.getCollection("residencies");
 
-        double minPrice = Double.parseDouble(priceString1);
-        double maxPrice = Double.parseDouble(priceString2);
+
+        double minPrice = Double.parseDouble(purchase_price);
+        double maxPrice = Double.parseDouble(purchase_price2);
+
+        FindIterable<Document> results = collection.find(
+            Filters.and(
+                    Filters.gte("purchase_price", minPrice),
+                    Filters.lte("purchase_price", maxPrice)
+                )
+        );
+
 
         List<HomeSale> homeSales = new ArrayList<>();
         int count = 0;
 
-        for (Document doc : collection.find()) {
+        for (Document doc : results) {
             try {
-                double price = Double.parseDouble(doc.getString("purchase_price"));
-                if (price >= minPrice && price <= maxPrice) {
+                //double price = Double.parseDouble(doc.getString("purchase_price"));
+                //if (price >= minPrice && price <= maxPrice) {
                     HomeSale homeSale = new HomeSale(
                             doc.getObjectId("_id").toString(),
                             doc.getString("post_code"),
@@ -208,7 +220,7 @@ public class SalesDAO {
                     homeSales.add(homeSale);
                     count++;
                     if (count > 10) break;
-                }
+                //}
             } catch (NumberFormatException e) {
                 // Skip records with invalid price strings
                 continue;
@@ -217,7 +229,8 @@ public class SalesDAO {
 
         return homeSales;
     } catch (Exception e) {
-        System.err.println("Error in getSalesByPrice DAO: " + e.getMessage());
+        System.err.println("Error in getSalesBypurchase_price DAO: " + e.getMessage());
         return Collections.emptyList();
+    }
     }
 }
