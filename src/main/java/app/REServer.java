@@ -46,6 +46,10 @@ public class REServer {
                 app.get("/sales/postcode/{postcode}", ctx -> {
                     salesHandler.findSaleByPostCode(ctx, ctx.pathParam("postcode"));
                 });
+                // Get all sales for a specified postcode
+                app.get("/sales/range/{minPrice}/{maxPrice}", ctx -> {
+                    salesHandler.findSaleByPostCode(ctx, ctx.pathParam("postcode"));
+                });
             });
 
 
