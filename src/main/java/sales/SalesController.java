@@ -77,8 +77,8 @@ public class SalesController {
 
 
     // Implements GET /sales/{minPrice}/{maxPrice}
-    public void findSalesBypurchase_price(Context ctx, String purchase_price, String purchase_price2) {
-        List<HomeSale> sales = homeSales.getSalesBypurchase_price(purchase_price, purchase_price2);
+    public void findSalesBypurchasePrice(Context ctx, String purchase_price, String purchase_price2) {
+        List<HomeSale> sales = homeSales.getSalesBypurchasePrice(purchase_price, purchase_price2);
         if (sales.isEmpty()) {
             ctx.result("No sales between the given price range");
             ctx.status(404);

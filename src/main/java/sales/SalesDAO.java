@@ -64,7 +64,7 @@ public class SalesDAO {
                 HomeSale homeSale = new HomeSale(
                     result.getObjectId("_id").toString(),
                     result.getString("post_code"),
-                    result.getString("purchase_price"),
+                    result.getInteger("purchase_price"),
                     result.getString("area_type")
                 );
                 return Optional.of(homeSale);
@@ -96,7 +96,7 @@ public class SalesDAO {
                 HomeSale homeSale = new HomeSale(
                     doc.getObjectId("_id").toString(),
                     doc.getString("post_code"),
-                    doc.getString("purchase_price"),
+                    doc.getInteger("purchase_price"),
                     doc.getString("area_type")
                 );
                 homeSales.add(homeSale);
@@ -132,7 +132,7 @@ public class SalesDAO {
                 HomeSale homeSale = new HomeSale(
                         doc.getObjectId("_id").toString(),
                         doc.getString("post_code"),
-                        doc.getString("purchase_price"),
+                        doc.getInteger("purchase_price"),
                         doc.getString("area_type"));
                 homeSales.add(homeSale);
                 count++;
@@ -170,7 +170,7 @@ public class SalesDAO {
                 HomeSale homeSale = new HomeSale(
                         doc.getObjectId("_id").toString(),
                         doc.getString("post_code"),
-                        doc.getString("purchase_price"),
+                        doc.getInteger("purchase_price"),
                         doc.getString("area_type"));
                 homeSales.add(homeSale);
 
@@ -187,14 +187,14 @@ public class SalesDAO {
     }
 
     // returns a List of homesales in a given price range
-    public List<HomeSale> getSalesBypurchase_price(String purchase_price, String purchase_price2) {
+    public List<HomeSale> getSalesBypurchasePrice(String purchase_price, String purchase_price2) {
     try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
         MongoDatabase db = mongoClient.getDatabase("RealEstateDB");
         MongoCollection<Document> collection = db.getCollection("residencies");
 
 
-        double minPrice = Double.parseDouble(purchase_price);
-        double maxPrice = Double.parseDouble(purchase_price2);
+        int minPrice = Integer.parseInt(purchase_price);
+        int maxPrice = Integer.parseInt(purchase_price2);
 
         FindIterable<Document> results = collection.find(
             Filters.and(
@@ -203,24 +203,20 @@ public class SalesDAO {
                 )
         );
 
-
         List<HomeSale> homeSales = new ArrayList<>();
         int count = 0;
 
         for (Document doc : results) {
             try {
-                //double price = Double.parseDouble(doc.getString("purchase_price"));
-                //if (price >= minPrice && price <= maxPrice) {
-                    HomeSale homeSale = new HomeSale(
-                            doc.getObjectId("_id").toString(),
-                            doc.getString("post_code"),
-                            doc.getString("purchase_price"),
-                            doc.getString("area_type")
-                    );
-                    homeSales.add(homeSale);
-                    count++;
-                    if (count > 10) break;
-                //}
+                HomeSale homeSale = new HomeSale(
+                        doc.getObjectId("_id").toString(),
+                        doc.getString("post_code"),
+                        doc.getInteger("purchase_price"),
+                        doc.getString("area_type")
+                );
+                homeSales.add(homeSale);
+                count++;
+                if (count > 10) break;
             } catch (NumberFormatException e) {
                 // Skip records with invalid price strings
                 continue;
