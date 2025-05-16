@@ -8,10 +8,10 @@ public class HomeSale {
     public ObjectId id;
     public String saleID;
     public String postcode;
-    public String salePrice;
+    public int salePrice;
     public String area_type;
 
-    public HomeSale(String saleID, String postcode, String salePrice, String area_type) {
+    public HomeSale(String saleID, String postcode, int salePrice, String area_type) {
         this.id = new ObjectId();
         this.saleID = saleID;
         this.postcode = postcode;
@@ -48,11 +48,11 @@ public class HomeSale {
         this.postcode = postcode;
     }
 
-    public String getSalePrice() {
+    public int getSalePrice() {
         return salePrice;
     }
 
-    public void setSalePrice(String salePrice) {
+    public void setSalePrice(int salePrice) {
         this.salePrice = salePrice;
     }
 
