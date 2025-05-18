@@ -1,33 +1,49 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>neu.cs.doc.cs4530</groupId>
     <artifactId>REServer</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openapi.version>6.0.0</openapi.version>
+        <javalin.version>6.6.0</javalin.version>
     </properties>
+
     <dependencies>
+        <!-- Core Javalin bundle -->
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin-bundle</artifactId>
-            <version>6.5.0</version>
+            <version>${javalin.version}</version>
         </dependency>
 
+        <!-- SLF4J for logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.16</version>
         </dependency>
-         <dependency>
+
+        <!-- OpenAPI Dependencies -->
+        <dependency>
             <groupId>io.javalin.community.openapi</groupId>
             <artifactId>javalin-openapi-plugin</artifactId>
-            <version>${openapi.version}</version>
+            <version>${javalin.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-swagger-plugin</artifactId>
+            <version>${javalin.version}</version>
+        </dependency>
+
+        <!-- MongoDB Java Driver -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
@@ -35,8 +51,28 @@
         </dependency>
 
     </dependencies>
+
     <build>
         <plugins>
+            <!-- Compiler plugin with OpenAPI annotation processor -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <annotationProcessorPath>
+                            <groupId>io.javalin.community.openapi</groupId>
+                            <artifactId>openapi-annotation-processor</artifactId>
+                            <version>${javalin.version}</version>
+                        </annotationProcessorPath>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Assembly plugin for creating jar-with-dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -50,7 +86,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>neu.cs.doc.Main</mainClass>
+                                    <mainClass>app.REServer</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
@@ -60,16 +96,31 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
 
+            <!-- CK Metrics plugin -->
+            <plugin>
+                <groupId>com.github.jazzmuesli</groupId>
+                <artifactId>ck-mvn-plugin</artifactId>
+                <version>1.2-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>metrics</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Exec plugin to run the server with mvn exec:java -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>app.REServer</mainClass>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
 </project>

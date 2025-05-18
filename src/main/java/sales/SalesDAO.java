@@ -17,8 +17,8 @@ import com.mongodb.client.model.Filters;
 
 public class SalesDAO {
 
-    private final String DB_URL = "mongodb://localhost:27017/";
-    // private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
+    //private final String DB_URL = "mongodb://localhost:27017/";
+    private final String DB_URL = "mongodb+srv://shirozianh:lReVvB53gWWFTOyx@realestatedata.ncrbvt4.mongodb.net/";
 
 
     public boolean newSale(HomeSale homeSale){
@@ -42,9 +42,9 @@ public class SalesDAO {
             return false;
             }
             }
-        
-    
-    
+
+
+
 
     // returns Optional wrapping a HomeSale if id is found, empty Optional otherwise
     public Optional<HomeSale> getSaleById(String saleID) {

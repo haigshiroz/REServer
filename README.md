@@ -1,6 +1,6 @@
-TO DO
+Terminal instructions:
 
-jjjjjjnfsvljsjznvlzjdnv lzd vblzdjgv z
-heylulohc sdjhcbajhcbjhasbc
+mvn java:exec -- will run the javalin server
+mvn ck-mvn:metrics -- runs ck to generate csv files
 
-ejejfyuheh llot eamhello hello
+http://localhost:7070/swagger -- enter in browser to access swagger UI once Javalin server is running

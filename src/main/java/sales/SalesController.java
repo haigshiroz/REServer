@@ -1,6 +1,7 @@
 package sales;
 
 import io.javalin.http.Context;
+import io.javalin.openapi.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +14,22 @@ public class SalesController {
         this.homeSales = homeSales;
     }
 
-    // implements POST /sales
+    @OpenApi(
+        path = "/sales",
+        methods = {HttpMethod.POST},
+        summary = "Create a new sale",
+        operationId = "createSale",
+        tags = {"Sales"},
+        requestBody = @OpenApiRequestBody(
+            content = @OpenApiContent(from = HomeSale.class),
+            required = true,
+            description = "Sale details"
+        ),
+        responses = {
+            @OpenApiResponse(status = "201", description = "Sale created successfully"),
+            @OpenApiResponse(status = "400", description = "Invalid sale data")
+        }
+    )
     public void createSale(Context ctx) {
 
         // Extract Home Sale from request body
@@ -30,7 +46,21 @@ public class SalesController {
         }
     }
 
-    // implements Get /sales
+    @OpenApi(
+        path = "/sales",
+        methods = {HttpMethod.GET},
+        summary = "Get all sales",
+        operationId = "getAllSales",
+        tags = {"Sales"},
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = HomeSale[].class),
+                description = "List of all sales"
+            ),
+            @OpenApiResponse(status = "404", description = "No sales found")
+        }
+    )
     public void getAllSales(Context ctx) {
         List<HomeSale> allSales = homeSales.getAllSales();
         if (allSales.isEmpty()) {
@@ -42,7 +72,24 @@ public class SalesController {
         }
     }
 
-    // implements GET /sales/{saleID}
+    @OpenApi(
+        path = "/sales/{saleID}",
+        methods = {HttpMethod.GET},
+        summary = "Get a sale by ID",
+        operationId = "getSaleByID",
+        tags = {"Sales"},
+        pathParams = {
+            @OpenApiParam(name = "saleID", description = "The ID of the sale to retrieve")
+        },
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = HomeSale.class),
+                description = "The requested sale"
+            ),
+            @OpenApiResponse(status = "404", description = "Sale not found")
+        }
+    )
     public void getSaleByID(Context ctx, String id) {
 
         Optional<HomeSale> sale = homeSales.getSaleById(id);
@@ -50,7 +97,24 @@ public class SalesController {
 
     }
 
-    // Implements GET /sales/postcode/{postcodeID}
+    @OpenApi(
+        path = "/sales/postcode/{postcodeID}",
+        methods = {HttpMethod.GET},
+        summary = "Get sales by postcode",
+        operationId = "findSaleByPostCode",
+        tags = {"Sales"},
+        pathParams = {
+            @OpenApiParam(name = "postcodeID", description = "The postcode to search for")
+        },
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = HomeSale[].class),
+                description = "List of sales in the postcode"
+            ),
+            @OpenApiResponse(status = "404", description = "No sales found for postcode")
+        }
+    )
     public void findSaleByPostCode(Context ctx, String postCode) {
         List<HomeSale> sales = homeSales.getSalesByPostCode(postCode);
         if (sales.isEmpty()) {
@@ -62,7 +126,24 @@ public class SalesController {
         }
     }
 
-    // Implements Get /sales/area_type/{area_type}
+    @OpenApi(
+        path = "/sales/area_type/{area_type}",
+        methods = {HttpMethod.GET},
+        summary = "Get sales by area type",
+        operationId = "findSaleByAreaType",
+        tags = {"Sales"},
+        pathParams = {
+            @OpenApiParam(name = "area_type", description = "The area type to search for")
+        },
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = HomeSale[].class),
+                description = "List of sales for the area type"
+            ),
+            @OpenApiResponse(status = "404", description = "No sales found for area type")
+        }
+    )
     public void findSaleByarea_type(Context ctx, String area_type) {
         List<HomeSale> sales = homeSales.getSalesByarea_type(area_type);
         if (sales.isEmpty()) {
@@ -75,8 +156,25 @@ public class SalesController {
         }
     }
 
-
-    // Implements GET /sales/{minPrice}/{maxPrice}
+    @OpenApi(
+        path = "/sales/{minPrice}/{maxPrice}",
+        methods = {HttpMethod.GET},
+        summary = "Get sales by price range",
+        operationId = "findSalesByPurchasePrice",
+        tags = {"Sales"},
+        pathParams = {
+            @OpenApiParam(name = "minPrice", description = "Minimum price"),
+            @OpenApiParam(name = "maxPrice", description = "Maximum price")
+        },
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = HomeSale[].class),
+                description = "List of sales in the price range"
+            ),
+            @OpenApiResponse(status = "404", description = "No sales found in price range")
+        }
+    )
     public void findSalesBypurchasePrice(Context ctx, String purchase_price, String purchase_price2) {
         List<HomeSale> sales = homeSales.getSalesBypurchasePrice(purchase_price, purchase_price2);
         if (sales.isEmpty()) {
