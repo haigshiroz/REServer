@@ -91,10 +91,11 @@ public class SalesController {
         }
     )
     public void getSaleByID(Context ctx, String id) {
+        // Track the view
+        homeSales.incrementViews(id);
 
         Optional<HomeSale> sale = homeSales.getSaleById(id);
         sale.map(ctx::json).orElseGet(() -> error(ctx, "Sale not found", 404));
-
     }
 
     @OpenApi(
@@ -116,6 +117,9 @@ public class SalesController {
         }
     )
     public void findSaleByPostCode(Context ctx, String postCode) {
+        // Track the postcode search
+        homeSales.incrementViews(postCode);
+
         List<HomeSale> sales = homeSales.getSalesByPostCode(postCode);
         if (sales.isEmpty()) {
             ctx.result("No sales for postcode found");
@@ -184,6 +188,50 @@ public class SalesController {
             ctx.json(sales);
             ctx.status(200);
         }
+    }
+
+    @OpenApi(
+        path = "/sales/stats/sales/{id}",
+        methods = {HttpMethod.GET},
+        summary = "Get view count for a specific sale",
+        operationId = "getSaleViews",
+        tags = {"Statistics"},
+        pathParams = {
+            @OpenApiParam(name = "id", description = "The sale ID to get view count for")
+        },
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = ViewStats.class),
+                description = "View count for the sale"
+            )
+        }
+    )
+    public void getSaleViews(Context ctx, String id) {
+        ViewStats stats = homeSales.getViewStats(id);
+        ctx.json(stats);
+    }
+
+    @OpenApi(
+        path = "/sales/stats/postcode/{postcode}",
+        methods = {HttpMethod.GET},
+        summary = "Get view count for a specific postcode",
+        operationId = "getPostcodeViews",
+        tags = {"Statistics"},
+        pathParams = {
+            @OpenApiParam(name = "postcode", description = "The postcode to get view count for")
+        },
+        responses = {
+            @OpenApiResponse(
+                status = "200",
+                content = @OpenApiContent(from = ViewStats.class),
+                description = "View count for the postcode"
+            )
+        }
+    )
+    public void getPostcodeViews(Context ctx, String postcode) {
+        ViewStats stats = homeSales.getViewStats(postcode);
+        ctx.json(stats);
     }
 
     private Context error(Context ctx, String msg, int code) {

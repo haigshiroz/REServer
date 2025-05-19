@@ -14,6 +14,8 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.UpdateOptions;
 
 public class SalesDAO {
 
@@ -228,5 +230,56 @@ public class SalesDAO {
         System.err.println("Error in getSalesBypurchase_price DAO: " + e.getMessage());
         return Collections.emptyList();
     }
+    }
+
+    // Track views for a property or postcode
+    public void incrementViews(String id) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
+            MongoDatabase db = mongoClient.getDatabase("RealEstateDB");
+            MongoCollection<Document> viewsCollection = db.getCollection("views_stats");
+
+            Document query = new Document("_id", id);
+            Document update = new Document("$inc", new Document("view_count", 1));
+
+            // Add isObjectId field to help distinguish between sale IDs and postcodes
+            boolean isObjectId = true;
+            try {
+                new ObjectId(id);
+            } catch (IllegalArgumentException e) {
+                isObjectId = false;
+            }
+
+            query.append("isObjectId", isObjectId);
+
+            viewsCollection.updateOne(
+                query,
+                update,
+                new UpdateOptions().upsert(true)
+            );
+        } catch (Exception e) {
+            System.err.println("Error tracking views: " + e.getMessage());
+        }
+    }
+
+    // Get view statistics for an ID
+    public ViewStats getViewStats(String id) {
+        try (MongoClient mongoClient = MongoClients.create(DB_URL)) {
+            MongoDatabase db = mongoClient.getDatabase("RealEstateDB");
+            MongoCollection<Document> viewsCollection = db.getCollection("views_stats");
+
+            Document query = new Document("_id", id);
+            Document result = viewsCollection.find(query).first();
+
+            if (result != null) {
+                return new ViewStats(
+                    result.getString("_id"),
+                    result.getInteger("view_count", 0)
+                );
+            }
+            return new ViewStats(id, 0);
+        } catch (Exception e) {
+            System.err.println("Error getting view stats: " + e.getMessage());
+            return new ViewStats(id, 0);
+        }
     }
 }

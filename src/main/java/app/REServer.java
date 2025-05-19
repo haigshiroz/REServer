@@ -57,6 +57,16 @@ public class REServer {
                             ctx.pathParam("maxPrice")
                         ));
                     });
+
+                    // Statistics endpoints
+                    ApiBuilder.path("stats", () -> {
+                        ApiBuilder.path("sales/{id}", () -> {
+                            ApiBuilder.get(ctx -> salesController.getSaleViews(ctx, ctx.pathParam("id")));
+                        });
+                        ApiBuilder.path("postcode/{postcode}", () -> {
+                            ApiBuilder.get(ctx -> salesController.getPostcodeViews(ctx, ctx.pathParam("postcode")));
+                        });
+                    });
                 });
             });
         }).start(7070);
