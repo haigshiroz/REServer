@@ -2,23 +2,19 @@ package app;
 
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
-
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sales.SalesDAO;
-import sales.SalesController;
+import sales.*;
 
 public class REServer {
     private static final Logger LOG = LoggerFactory.getLogger(REServer.class);
 
     public static void main(String[] args) {
-
-        var sales = new SalesDAO();
-        SalesController salesController = new SalesController(sales);
+        // Use only CassandraDAO as DatabaseInterface
+        DatabaseInterface salesDAO = new CassandraDAO();
+        SalesController salesController = new SalesController(salesDAO);
 
         // Create Javalin instance
         Javalin app = Javalin.create(config -> {
@@ -26,7 +22,7 @@ public class REServer {
             config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
                 pluginConfig.withDefinitionConfiguration((version, definition) -> {
                     definition.withOpenApiInfo(info -> {
-                        info.setTitle("Real Estate API");
+                        info.setTitle("Real Estate API (Cassandra)");
                         info.setVersion("1.0");
                         info.setDescription("API for accessing real estate sales data in Australia");
                     });
@@ -47,15 +43,11 @@ public class REServer {
                     ApiBuilder.path("postcode/{postcodeID}", () -> {
                         ApiBuilder.get(ctx -> salesController.findSaleByPostCode(ctx, ctx.pathParam("postcodeID")));
                     });
-                    ApiBuilder.path("area_type/{area_type}", () -> {
-                        ApiBuilder.get(ctx -> salesController.findSaleByarea_type(ctx, ctx.pathParam("area_type")));
+                    ApiBuilder.path("area_type/{areaType}", () -> {
+                        ApiBuilder.get(ctx -> salesController.findSaleByAreaType(ctx, ctx.pathParam("areaType")));
                     });
-                    ApiBuilder.path("{minPrice}/{maxPrice}", () -> {
-                        ApiBuilder.get(ctx -> salesController.findSalesBypurchasePrice(
-                            ctx,
-                            ctx.pathParam("minPrice"),
-                            ctx.pathParam("maxPrice")
-                        ));
+                    ApiBuilder.path("price/{minPrice}/{maxPrice}", () -> {
+                        ApiBuilder.get(ctx -> salesController.findSalesByPriceRange(ctx, ctx.pathParam("minPrice"), ctx.pathParam("maxPrice")));
                     });
 
                     // Statistics endpoints
@@ -73,5 +65,12 @@ public class REServer {
 
         LOG.info("Server started at http://localhost:7070/");
         LOG.info("Swagger UI at http://localhost:7070/swagger");
+        LOG.info("Using database: Cassandra");
+
+        // Add shutdown hook to close database connection
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            salesDAO.close();
+            LOG.info("Server stopped");
+        }));
     }
 }

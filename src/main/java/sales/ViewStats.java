@@ -2,9 +2,9 @@ package sales;
 
 public class ViewStats {
     private String id;          // property ID or postcode
-    private int viewCount;
+    private long viewCount;     // Changed to long to match Cassandra counter type
 
-    public ViewStats(String id, int viewCount) {
+    public ViewStats(String id, long viewCount) {
         this.id = id;
         this.viewCount = viewCount;
     }
@@ -13,11 +13,7 @@ public class ViewStats {
         return id;
     }
 
-    public int getViewCount() {
+    public long getViewCount() {
         return viewCount;
-    }
-
-    public void incrementViewCount() {
-        this.viewCount++;
     }
 }

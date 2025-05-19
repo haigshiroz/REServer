@@ -1,18 +1,16 @@
 package sales;
 
-import org.bson.types.ObjectId;
-
 // Simple class to provide test data in SalesDAO
 
 public class HomeSale {
-    public ObjectId id;
-    public String saleID;
-    public String postcode;
-    public int salePrice;
-    public String area_type;
+    private String id;
+    private String saleID;
+    private String postcode;
+    private int salePrice;
+    private String area_type;
 
     public HomeSale(String saleID, String postcode, int salePrice, String area_type) {
-        this.id = new ObjectId();
+        this.id = saleID;  // Use saleID as the id
         this.saleID = saleID;
         this.postcode = postcode;
         this.salePrice = salePrice;
@@ -21,14 +19,13 @@ public class HomeSale {
 
     // needed for JSON conversion
     public HomeSale() {
-        this.id = new ObjectId();
     }
 
-    public ObjectId getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setId(String id) {
         this.id = id;
     }
 

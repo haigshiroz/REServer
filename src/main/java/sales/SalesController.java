@@ -5,12 +5,15 @@ import io.javalin.openapi.*;
 
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SalesController {
 
-    private SalesDAO homeSales;
+    private DatabaseInterface homeSales;
+    private static final Logger LOG = LoggerFactory.getLogger(SalesController.class);
 
-    public SalesController(SalesDAO homeSales) {
+    public SalesController(DatabaseInterface homeSales) {
         this.homeSales = homeSales;
     }
 
@@ -91,11 +94,17 @@ public class SalesController {
         }
     )
     public void getSaleByID(Context ctx, String id) {
-        // Track the view
+        // Track the view before getting the sale
         homeSales.incrementViews(id);
+        LOG.info("Incrementing view count for sale ID: {}", id);
 
         Optional<HomeSale> sale = homeSales.getSaleById(id);
-        sale.map(ctx::json).orElseGet(() -> error(ctx, "Sale not found", 404));
+        if (sale.isPresent()) {
+            ctx.json(sale.get());
+            ctx.status(200);
+        } else {
+            error(ctx, "Sale not found", 404);
+        }
     }
 
     @OpenApi(
@@ -117,8 +126,9 @@ public class SalesController {
         }
     )
     public void findSaleByPostCode(Context ctx, String postCode) {
-        // Track the postcode search
+        // Track the postcode search before getting the sales
         homeSales.incrementViews(postCode);
+        LOG.info("Incrementing view count for postcode: {}", postCode);
 
         List<HomeSale> sales = homeSales.getSalesByPostCode(postCode);
         if (sales.isEmpty()) {
@@ -148,11 +158,10 @@ public class SalesController {
             @OpenApiResponse(status = "404", description = "No sales found for area type")
         }
     )
-    public void findSaleByarea_type(Context ctx, String area_type) {
-        List<HomeSale> sales = homeSales.getSalesByarea_type(area_type);
+    public void findSaleByAreaType(Context ctx, String areaType) {
+        List<HomeSale> sales = homeSales.getSalesByAreaType(areaType);
         if (sales.isEmpty()) {
             ctx.result("No sales found for this area type");
-
             ctx.status(404);
         } else {
             ctx.json(sales);
@@ -161,10 +170,10 @@ public class SalesController {
     }
 
     @OpenApi(
-        path = "/sales/{minPrice}/{maxPrice}",
+        path = "/sales/price/{minPrice}/{maxPrice}",
         methods = {HttpMethod.GET},
         summary = "Get sales by price range",
-        operationId = "findSalesByPurchasePrice",
+        operationId = "findSalesByPriceRange",
         tags = {"Sales"},
         pathParams = {
             @OpenApiParam(name = "minPrice", description = "Minimum price"),
@@ -179,14 +188,22 @@ public class SalesController {
             @OpenApiResponse(status = "404", description = "No sales found in price range")
         }
     )
-    public void findSalesBypurchasePrice(Context ctx, String purchase_price, String purchase_price2) {
-        List<HomeSale> sales = homeSales.getSalesBypurchasePrice(purchase_price, purchase_price2);
-        if (sales.isEmpty()) {
-            ctx.result("No sales between the given price range");
-            ctx.status(404);
-        } else {
-            ctx.json(sales);
-            ctx.status(200);
+    public void findSalesByPriceRange(Context ctx, String minPrice, String maxPrice) {
+        try {
+            List<HomeSale> sales = homeSales.getSalesByPriceRange(minPrice, maxPrice);
+            if (sales.isEmpty()) {
+                ctx.result("No sales between the given price range");
+                ctx.status(404);
+            } else {
+                ctx.json(sales);
+                ctx.status(200);
+            }
+        } catch (NumberFormatException e) {
+            ctx.result("Invalid price format. Please provide valid numbers.");
+            ctx.status(400);
+        } catch (Exception e) {
+            ctx.result("Error processing request: " + e.getMessage());
+            ctx.status(500);
         }
     }
 
@@ -209,6 +226,7 @@ public class SalesController {
     )
     public void getSaleViews(Context ctx, String id) {
         ViewStats stats = homeSales.getViewStats(id);
+        LOG.info("Retrieved view stats for sale ID {}: {} views", id, stats.getViewCount());
         ctx.json(stats);
     }
 
@@ -231,6 +249,7 @@ public class SalesController {
     )
     public void getPostcodeViews(Context ctx, String postcode) {
         ViewStats stats = homeSales.getViewStats(postcode);
+        LOG.info("Retrieved view stats for postcode {}: {} views", postcode, stats.getViewCount());
         ctx.json(stats);
     }
 
