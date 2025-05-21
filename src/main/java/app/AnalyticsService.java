@@ -35,10 +35,12 @@ public class AnalyticsService {
             Document result = viewsCollection.find(query).first();
 
         } catch (Exception e) {
-            if result != >= 1
-            then return "no record found"
-            else return "number of searchs {}, id"
-        }
+            if (result >= 1) {
+                System.out.println("no record found");
+            }
+            else {
+                System.out.println("number of searchs {}" + id);
+            }
         }
 
 }
