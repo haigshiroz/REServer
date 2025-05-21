@@ -2,86 +2,98 @@ package app;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
-
-import com.apple.laf.ClientPropertyApplicator.Property;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import sales.HomeSale;
+import sales.SalesDAO;
 import java.util.List;
-import java.util.ArrayList;
 
 public class PropertyService {
-    private final Map<String, Property> properties;
+    private final SalesDAO salesDAO;
     private final ObjectMapper objectMapper;
 
     public PropertyService() {
-        this.properties = new ConcurrentHashMap<>();
+        this.salesDAO = new SalesDAO();
         this.objectMapper = new ObjectMapper();
-  
     }
 
     public void start() {
         Javalin app = Javalin.create(config -> {
-            config.plugins.enableCors(cors -> {
-                cors.add(it -> it.anyHost());
-            });
+            // No plugins needed for internal service
         }).start(7001);
 
-        app.get("/properties/{id}", this::getProperty);
-        app.get("/properties", this::getAllProperties);
-        app.post("/properties", this::createProperty);
-        app.put("/properties/{id}", this::updateProperty);
-        app.delete("/properties/{id}", this::deleteProperty);
+        // Sales endpoints
+        app.get("/sales", this::getAllSales);
+        app.post("/sales", this::createSale);
+        app.get("/sales/{saleID}", this::getSaleByID);
+        app.get("/sales/postcode/{postcodeID}", this::findSaleByPostCode);
+        app.get("/sales/area_type/{area_type}", this::findSaleByAreaType);
+        app.get("/sales/{minPrice}/{maxPrice}", this::findSalesByPriceRange);
     }
 
-    private void getProperty(Context ctx) {
-        String id = ctx.pathParam("id");
-        Property property = properties.get(id);
-        
-        if (property != null) {
-            ctx.json(property);
-        } else {
-            ctx.status(404).result("Property not found");
-        }
-    }
-
-    private void getAllProperties(Context ctx) {
-        List<Property> propertyList = new ArrayList<>(properties.values());
-        ctx.json(propertyList);
-    }
-
-    private void createProperty(Context ctx) {
+    private void getAllSales(Context ctx) {
         try {
-            Property property = objectMapper.readValue(ctx.body(), Property.class);
-            
-            // Generate an ID if not provided
-            if (property.getId() == null || property.getId().isEmpty()) {
-                property.setId(UUID.randomUUID().toString());
-            }
-            
-            properties.put(property.getId(), property);
-            ctx.status(201).json(property);
+            List<HomeSale> sales = salesDAO.getAllSales();
+            ctx.json(sales);
         } catch (Exception e) {
-            ctx.status(400).result("Invalid property data: " + e.getMessage());
+            ctx.status(500).result("Error: " + e.getMessage());
         }
     }
 
-    private void updateProperty(Context ctx) {
-        String id = ctx.pathParam("id");
-        
+    private void createSale(Context ctx) {
         try {
-            Property updatedProperty = objectMapper.readValue(ctx.body(), Property.class);
-            
-            if (properties.containsKey(id)) {
-                updatedProperty.setId(id); // Ensure ID is preserved
-                properties.put(id, updatedProperty);
-                ctx.json(updatedProperty);
+            HomeSale sale = objectMapper.readValue(ctx.body(), HomeSale.class);
+            if (salesDAO.newSale(sale)) {
+                ctx.status(201).json(sale);
             } else {
-                ctx.status(404).result("Property not found");
+                ctx.status(400).result("Failed to create sale");
             }
         } catch (Exception e) {
-            ctx.status(400).result("Invalid property data: " + e.getMessage());
+            ctx.status(400).result("Invalid sale data: " + e.getMessage());
+        }
+    }
+
+    private void getSaleByID(Context ctx) {
+        String id = ctx.pathParam("saleID");
+        try {
+            var sale = salesDAO.getSaleById(id);
+            if (sale.isPresent()) {
+                ctx.json(sale.get());
+            } else {
+                ctx.status(404).result("Sale not found");
+            }
+        } catch (Exception e) {
+            ctx.status(500).result("Error: " + e.getMessage());
+        }
+    }
+
+    private void findSaleByPostCode(Context ctx) {
+        String postcode = ctx.pathParam("postcodeID");
+        try {
+            List<HomeSale> sales = salesDAO.getSalesByPostCode(postcode);
+            ctx.json(sales);
+        } catch (Exception e) {
+            ctx.status(500).result("Error: " + e.getMessage());
+        }
+    }
+
+    private void findSaleByAreaType(Context ctx) {
+        String areaType = ctx.pathParam("area_type");
+        try {
+            List<HomeSale> sales = salesDAO.getSalesByarea_type(areaType);
+            ctx.json(sales);
+        } catch (Exception e) {
+            ctx.status(500).result("Error: " + e.getMessage());
+        }
+    }
+
+    private void findSalesByPriceRange(Context ctx) {
+        String minPrice = ctx.pathParam("minPrice");
+        String maxPrice = ctx.pathParam("maxPrice");
+        try {
+            List<HomeSale> sales = salesDAO.getSalesBypurchasePrice(minPrice, maxPrice);
+            ctx.json(sales);
+        } catch (Exception e) {
+            ctx.status(500).result("Error: " + e.getMessage());
         }
     }
 

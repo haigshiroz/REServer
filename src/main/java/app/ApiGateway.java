@@ -3,6 +3,8 @@ package app;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
+import io.javalin.openapi.plugin.OpenApiPlugin;
+import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -24,10 +26,7 @@ public class ApiGateway {
 
     public void start() {
         Javalin app = Javalin.create(config -> {
-            config.plugins.enableCors(cors -> {
-                cors.add(it -> it.anyHost());
-            });
-            // Add OpenAPI plugin
+            // Configure OpenAPI plugin
             config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
                 pluginConfig.withDefinitionConfiguration((version, definition) -> {
                     definition.withOpenApiInfo(info -> {
@@ -37,7 +36,8 @@ public class ApiGateway {
                     });
                 });
             }));
-            // Add Swagger plugin
+
+            // Register Swagger plugins
             config.registerPlugin(new SwaggerPlugin());
         }).start(7000);
 
