@@ -1,42 +1,24 @@
 package sales;
 
 import io.javalin.http.Context;
-import io.javalin.openapi.*;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.util.List;
 import java.util.Optional;
 
 public class SalesController {
-
     private SalesDAO homeSales;
+    private final ObjectMapper objectMapper;
 
     public SalesController(SalesDAO homeSales) {
         this.homeSales = homeSales;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
-    @OpenApi(
-        path = "/sales",
-        methods = {HttpMethod.POST},
-        summary = "Create a new sale",
-        operationId = "createSale",
-        tags = {"Sales"},
-        requestBody = @OpenApiRequestBody(
-            content = @OpenApiContent(from = HomeSale.class),
-            required = true,
-            description = "Sale details"
-        ),
-        responses = {
-            @OpenApiResponse(status = "201", description = "Sale created successfully"),
-            @OpenApiResponse(status = "400", description = "Invalid sale data")
-        }
-    )
     public void createSale(Context ctx) {
-
-        // Extract Home Sale from request body
-        // TO DO override Validator exception method to report better error message
         HomeSale sale = ctx.bodyValidator(HomeSale.class).get();
 
-        // store new sale in data set
         if (homeSales.newSale(sale)) {
             ctx.result("Sale Created");
             ctx.status(201);
@@ -46,192 +28,114 @@ public class SalesController {
         }
     }
 
-    @OpenApi(
-        path = "/sales",
-        methods = {HttpMethod.GET},
-        summary = "Get all sales",
-        operationId = "getAllSales",
-        tags = {"Sales"},
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = HomeSale[].class),
-                description = "List of all sales"
-            ),
-            @OpenApiResponse(status = "404", description = "No sales found")
-        }
-    )
     public void getAllSales(Context ctx) {
         List<HomeSale> allSales = homeSales.getAllSales();
         if (allSales.isEmpty()) {
             ctx.result("No Sales Found");
             ctx.status(404);
         } else {
-            ctx.json(allSales);
-            ctx.status(200);
+            try {
+                String jsonResponse = objectMapper.writeValueAsString(allSales);
+                ctx.result(jsonResponse);
+                ctx.status(200);
+            } catch (Exception e) {
+                ctx.result("Error formatting response: " + e.getMessage());
+                ctx.status(500);
+            }
         }
     }
 
-    @OpenApi(
-        path = "/sales/{saleID}",
-        methods = {HttpMethod.GET},
-        summary = "Get a sale by ID",
-        operationId = "getSaleByID",
-        tags = {"Sales"},
-        pathParams = {
-            @OpenApiParam(name = "saleID", description = "The ID of the sale to retrieve")
-        },
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = HomeSale.class),
-                description = "The requested sale"
-            ),
-            @OpenApiResponse(status = "404", description = "Sale not found")
-        }
-    )
     public void getSaleByID(Context ctx, String id) {
-        // Track the view
         homeSales.incrementViews(id);
-
         Optional<HomeSale> sale = homeSales.getSaleById(id);
-        sale.map(ctx::json).orElseGet(() -> error(ctx, "Sale not found", 404));
+        if (sale.isPresent()) {
+            try {
+                String jsonResponse = objectMapper.writeValueAsString(sale.get());
+                ctx.result(jsonResponse);
+                ctx.status(200);
+            } catch (Exception e) {
+                ctx.result("Error formatting response: " + e.getMessage());
+                ctx.status(500);
+            }
+        } else {
+            error(ctx, "Sale not found", 404);
+        }
     }
 
-    @OpenApi(
-        path = "/sales/postcode/{postcodeID}",
-        methods = {HttpMethod.GET},
-        summary = "Get sales by postcode",
-        operationId = "findSaleByPostCode",
-        tags = {"Sales"},
-        pathParams = {
-            @OpenApiParam(name = "postcodeID", description = "The postcode to search for")
-        },
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = HomeSale[].class),
-                description = "List of sales in the postcode"
-            ),
-            @OpenApiResponse(status = "404", description = "No sales found for postcode")
-        }
-    )
     public void findSaleByPostCode(Context ctx, String postCode) {
-        // Track the postcode search
         homeSales.incrementViews(postCode);
-
         List<HomeSale> sales = homeSales.getSalesByPostCode(postCode);
         if (sales.isEmpty()) {
             ctx.result("No sales for postcode found");
             ctx.status(404);
         } else {
-            ctx.json(sales);
-            ctx.status(200);
+            try {
+                String jsonResponse = objectMapper.writeValueAsString(sales);
+                ctx.result(jsonResponse);
+                ctx.status(200);
+            } catch (Exception e) {
+                ctx.result("Error formatting response: " + e.getMessage());
+                ctx.status(500);
+            }
         }
     }
 
-    @OpenApi(
-        path = "/sales/area_type/{area_type}",
-        methods = {HttpMethod.GET},
-        summary = "Get sales by area type",
-        operationId = "findSaleByAreaType",
-        tags = {"Sales"},
-        pathParams = {
-            @OpenApiParam(name = "area_type", description = "The area type to search for")
-        },
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = HomeSale[].class),
-                description = "List of sales for the area type"
-            ),
-            @OpenApiResponse(status = "404", description = "No sales found for area type")
-        }
-    )
     public void findSaleByarea_type(Context ctx, String area_type) {
         List<HomeSale> sales = homeSales.getSalesByarea_type(area_type);
         if (sales.isEmpty()) {
             ctx.result("No sales found for this area type");
-
             ctx.status(404);
         } else {
-            ctx.json(sales);
-            ctx.status(200);
+            try {
+                String jsonResponse = objectMapper.writeValueAsString(sales);
+                ctx.result(jsonResponse);
+                ctx.status(200);
+            } catch (Exception e) {
+                ctx.result("Error formatting response: " + e.getMessage());
+                ctx.status(500);
+            }
         }
     }
 
-    @OpenApi(
-        path = "/sales/{minPrice}/{maxPrice}",
-        methods = {HttpMethod.GET},
-        summary = "Get sales by price range",
-        operationId = "findSalesByPurchasePrice",
-        tags = {"Sales"},
-        pathParams = {
-            @OpenApiParam(name = "minPrice", description = "Minimum price"),
-            @OpenApiParam(name = "maxPrice", description = "Maximum price")
-        },
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = HomeSale[].class),
-                description = "List of sales in the price range"
-            ),
-            @OpenApiResponse(status = "404", description = "No sales found in price range")
-        }
-    )
     public void findSalesBypurchasePrice(Context ctx, String purchase_price, String purchase_price2) {
         List<HomeSale> sales = homeSales.getSalesBypurchasePrice(purchase_price, purchase_price2);
         if (sales.isEmpty()) {
             ctx.result("No sales between the given price range");
             ctx.status(404);
         } else {
-            ctx.json(sales);
-            ctx.status(200);
+            try {
+                String jsonResponse = objectMapper.writeValueAsString(sales);
+                ctx.result(jsonResponse);
+                ctx.status(200);
+            } catch (Exception e) {
+                ctx.result("Error formatting response: " + e.getMessage());
+                ctx.status(500);
+            }
         }
     }
 
-    @OpenApi(
-        path = "/sales/stats/sales/{id}",
-        methods = {HttpMethod.GET},
-        summary = "Get view count for a specific sale",
-        operationId = "getSaleViews",
-        tags = {"Statistics"},
-        pathParams = {
-            @OpenApiParam(name = "id", description = "The sale ID to get view count for")
-        },
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = ViewStats.class),
-                description = "View count for the sale"
-            )
-        }
-    )
     public void getSaleViews(Context ctx, String id) {
         ViewStats stats = homeSales.getViewStats(id);
-        ctx.json(stats);
+        try {
+            String jsonResponse = objectMapper.writeValueAsString(stats);
+            ctx.result(jsonResponse);
+            ctx.status(200);
+        } catch (Exception e) {
+            ctx.result("Error formatting response: " + e.getMessage());
+            ctx.status(500);
+        }
     }
 
-    @OpenApi(
-        path = "/sales/stats/postcode/{postcode}",
-        methods = {HttpMethod.GET},
-        summary = "Get view count for a specific postcode",
-        operationId = "getPostcodeViews",
-        tags = {"Statistics"},
-        pathParams = {
-            @OpenApiParam(name = "postcode", description = "The postcode to get view count for")
-        },
-        responses = {
-            @OpenApiResponse(
-                status = "200",
-                content = @OpenApiContent(from = ViewStats.class),
-                description = "View count for the postcode"
-            )
-        }
-    )
     public void getPostcodeViews(Context ctx, String postcode) {
         ViewStats stats = homeSales.getViewStats(postcode);
-        ctx.json(stats);
+        try {
+            String jsonResponse = objectMapper.writeValueAsString(stats);
+            ctx.result(jsonResponse);
+            ctx.status(200);
+        } catch (Exception e) {
+            ctx.result("Error formatting response: " + e.getMessage());
+            ctx.status(500);
+        }
     }
 
     private Context error(Context ctx, String msg, int code) {

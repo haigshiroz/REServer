@@ -251,6 +251,7 @@ public class SalesDAO {
 
             query.append("isObjectId", isObjectId);
 
+            // Use upsert to create the document if it doesn't exist
             viewsCollection.updateOne(
                 query,
                 update,
@@ -268,6 +269,16 @@ public class SalesDAO {
             MongoCollection<Document> viewsCollection = db.getCollection("views_stats");
 
             Document query = new Document("_id", id);
+
+            // Add isObjectId field to help distinguish between sale IDs and postcodes
+            boolean isObjectId = true;
+            try {
+                new ObjectId(id);
+            } catch (IllegalArgumentException e) {
+                isObjectId = false;
+            }
+            query.append("isObjectId", isObjectId);
+
             Document result = viewsCollection.find(query).first();
 
             if (result != null) {
@@ -276,6 +287,7 @@ public class SalesDAO {
                     result.getInteger("view_count", 0)
                 );
             }
+            // If no document exists, return a new ViewStats with count 0
             return new ViewStats(id, 0);
         } catch (Exception e) {
             System.err.println("Error getting view stats: " + e.getMessage());
