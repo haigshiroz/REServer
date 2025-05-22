@@ -6,15 +6,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import sales.SalesDAO;
 import sales.ViewStats;
+import app.kafka.ViewConsumer;
 
 public class AnalyticsService {
     private final SalesDAO salesDAO;
     private final ObjectMapper objectMapper;
+    private final ViewConsumer viewConsumer;
 
     public AnalyticsService() {
         this.salesDAO = new SalesDAO();
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        this.viewConsumer = new ViewConsumer(salesDAO);
+        this.viewConsumer.startConsuming();
     }
 
     public void start() {

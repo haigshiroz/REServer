@@ -11,3 +11,5 @@ Run jars within their own terminal or it will not work:
 java -jar target/property-service.jar
 java -jar target/analytics-service.jar
 java -jar target/api-gateway.jar
+
+kafka-console-consumer --bootstrap-server localhost:9092 --topic property-views --from-beginning --property print.key=true

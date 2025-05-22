@@ -10,17 +10,20 @@ import java.net.http.HttpResponse;
 import java.net.URI;
 import sales.HomeSale;
 import sales.ViewStats;
+import app.kafka.ViewProducer;
 
 public class ApiGateway {
     private static final String PROPERTY_SERVICE_URL = "http://localhost:7001";
     private static final String ANALYTICS_SERVICE_URL = "http://localhost:7002";
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final ViewProducer viewProducer;
 
     public ApiGateway() {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        this.viewProducer = new ViewProducer();
     }
 
     public void start() {
@@ -84,12 +87,8 @@ public class ApiGateway {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Forward the request to analytics service
-            HttpRequest analyticsRequest = HttpRequest.newBuilder()
-                .uri(URI.create(ANALYTICS_SERVICE_URL + "/sales/stats/sales/" + id))
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
-            httpClient.send(analyticsRequest, HttpResponse.BodyHandlers.ofString());
+            // Send view event to Kafka
+            viewProducer.sendViewEvent(id, false);
 
             if (response.statusCode() == 200) {
                 // Parse and reformat the JSON
@@ -113,12 +112,8 @@ public class ApiGateway {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Forward the request to analytics service
-            HttpRequest analyticsRequest = HttpRequest.newBuilder()
-                .uri(URI.create(ANALYTICS_SERVICE_URL + "/sales/stats/postcode/" + postcode))
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
-            httpClient.send(analyticsRequest, HttpResponse.BodyHandlers.ofString());
+            // Send view event to Kafka
+            viewProducer.sendViewEvent(postcode, true);
 
             if (response.statusCode() == 200) {
                 // Parse and reformat the JSON

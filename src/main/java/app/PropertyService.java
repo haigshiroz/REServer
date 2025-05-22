@@ -5,15 +5,18 @@ import io.javalin.http.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import sales.HomeSale;
 import sales.SalesDAO;
+import app.kafka.PropertyProducer;
 import java.util.List;
 
 public class PropertyService {
     private final SalesDAO salesDAO;
     private final ObjectMapper objectMapper;
+    private final PropertyProducer propertyProducer;
 
     public PropertyService() {
         this.salesDAO = new SalesDAO();
         this.objectMapper = new ObjectMapper();
+        this.propertyProducer = new PropertyProducer();
     }
 
     public void start() {
@@ -43,6 +46,8 @@ public class PropertyService {
         try {
             HomeSale sale = objectMapper.readValue(ctx.body(), HomeSale.class);
             if (salesDAO.newSale(sale)) {
+                // Send event to Kafka
+                propertyProducer.sendPropertyEvent(sale);
                 ctx.status(201).json(sale);
             } else {
                 ctx.status(400).result("Failed to create sale");
